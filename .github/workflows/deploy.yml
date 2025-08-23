@@ -1,0 +1,20 @@
+name: Pull in Live Server At Scheduled Time
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  Add_Cronjob:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executing the Script to Add CronJob 
+        env:
+          cron: "00 19 * * *"
+          branch: "develop"   # <-- specify branch here
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > ssh.pem
+          chmod 600 ssh.pem
+
+          ########## Change bench name, repo name, branch name ##########
+          ssh -o StrictHostKeyChecking=no -i ssh.pem ubuntu@165.232.183.141 \
+            "cd live_server_script && ./github_action.sh '$cron' 'frappe-bench' 'Testing_script' '$branch'"
