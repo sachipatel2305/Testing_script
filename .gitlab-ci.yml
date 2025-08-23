@@ -1,0 +1,22 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'   # Run only when manually triggered from UI
+    - when: never
+
+stages:
+  - cronjob
+
+add_cronjob:
+  stage: cronjob
+  image: ubuntu:20.04
+  script:
+    - apt-get update && apt-get install -y openssh-client
+    # write SSH key from CI/CD secret variable
+    - echo "$SSH_KEY" > ssh.pem
+    - chmod 600 ssh.pem
+    # define variables (you can also pass them from UI)
+    - export CRON="00 19 * * *"
+    - export BRANCH="develop"
+    # run your remote script
+    - ssh -o StrictHostKeyChecking=no -i ssh.pem user@127.0.0.1 \
+        "cd live_server_script && ./github_actions.sh '$CRON' 'frappe-bench' 'Testing_script' '$BRANCH'"
